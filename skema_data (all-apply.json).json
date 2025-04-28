@@ -1,0 +1,139 @@
+{
+  "_id": "string",
+  "title": "string",
+  "slug": "string",
+  "application_type": "string",
+  "seo_image_url": "string",
+  "description": "string (HTML content)",
+  "job_link": "string (URL)",
+  "employment_type": "string",
+  "seo_employment_type": "string",
+  "seniority_level": "string", // kadang kosong ("")
+  "experience_level": "string",
+  "work_arrangement": "string",
+  "number_of_vacancies": "number",
+  "has_no_specific_vacancy": "boolean",
+  "internship_eligibility": "string", // kadang kosong ("")
+  "city": "string|null", // kadang null
+  "country_code": "string",
+  "company": {
+    "_id": "string",
+    "slug": "string",
+    "company_id": "string",
+    "type": "string",
+    "name": "string",
+    "industry": "string",
+    "industries": ["string"],
+    "unique_entity_number": "string", // kadang kosong ("")
+    "not_use_unique_entity_number": "boolean",
+    "country_code": "string",
+    "text": "string",
+    "logo_url": "string",
+    "order": "number",
+    "description": "string",
+    "address": "string",
+    "guide_order": "number",
+    "disable_for_subtitle": "boolean",
+    "web_url": "string",
+    "linkedin_url": "string", // kadang kosong ("")
+    "company_video_url": "string", // kadang kosong ("")
+    "point_of_contacts": [], // selalu array kosong
+    "has_point_of_contact": "boolean",
+    "active_job_count": [], // selalu array kosong
+    "membership_plan_id": "number",
+    "meta": "null", // selalu null
+    "company_assets": [
+      {
+        "_id": "string",
+        "company": "string (company _id)",
+        "asset": {
+          "_id": "string",
+          "mime_type": "string",
+          "dirname": "string",
+          "size": "number",
+          "name": "string",
+          "meta": {
+            "bucket": "string",
+            "acl": "string",
+            "fieldname": "string",
+            "originalname": "string",
+            "encoding": "string",
+            "mimetype": "string",
+            "size": "number",
+            "key": "string",
+            "contentType": "string",
+            "contentDisposition": "null",
+            "contentEncoding": "null",
+            "storageClass": "string",
+            "serverSideEncryption": "null",
+            "location": "string",
+            "etag": "string",
+            "versionId": "string"
+          },
+          "created_at": "datetime string (ISO 8601)",
+          "updated_at": "datetime string (ISO 8601)",
+          "__v": "number",
+          "src": "string",
+          "id": "string"
+        },
+        "sequence": "number",
+        "created_at": "datetime string (ISO 8601)",
+        "updated_at": "datetime string (ISO 8601)",
+        "__v": "number"
+      }
+    ],
+    "company_logo_url": "string",
+    "created_at": "datetime string (ISO 8601)",
+    "updated_at": "datetime string (ISO 8601)",
+    "deleted_at": "null" // selalu null
+  },
+  "industry": "string",
+  "tags": ["string"], // biasanya array kosong []
+  "responsibilities": [
+    {
+      "text": "string",
+      "_id": "string",
+      "id": "string"
+    }
+  ], // kadang bisa kosong []
+  "requirements": [
+    {
+      "text": "string",
+      "_id": "string",
+      "id": "string"
+    }
+  ],
+  "to_email_addresses": ["string"],
+  "cc_email_addresses": ["string"], // biasanya array kosong []
+  "is_showcased": "boolean",
+  "expired_at": "datetime string (ISO 8601)",
+  "is_expired": "boolean",
+  "created_at": "datetime string (ISO 8601)",
+  "updated_at": "datetime string (ISO 8601)",
+  "is_appliable_via_kinobi": "boolean",
+  "status": "string",
+  "is_draft": "boolean",
+  "disable_job_status": "boolean",
+  "currency": "string", // kosong ("")
+  "salary_lower_range": "number|null", // biasanya null
+  "salary_upper_range": "number|null", // biasanya null
+  "restriction": {
+    "degree_level": ["string"], // biasanya array kosong []
+    "major": ["string"], // biasanya array kosong []
+    "graduation_years": ["string"], // biasanya array kosong []
+    "majors": ["string"], // biasanya array kosong []
+    "programs": ["string"], // biasanya array kosong []
+    "academic_levels": ["string"], // biasanya array kosong []
+    "user_groups": ["string"] // biasanya array kosong []
+  },
+  "has_advance_settings": "boolean",
+  "is_disclose_salary": "boolean",
+  "display_to_unqualified_student": "boolean",
+  "keywords": ["string"], // biasanya array kosong []
+  "soft_industry_skill_value_ids": ["string"], // biasanya array kosong []
+  "hard_industry_skill_value_ids": ["string"], // biasanya array kosong []
+  "job_additional_resource_assets": ["string"], // biasanya array kosong []
+  "number_of_views": "number",
+  "user_has_applied": "boolean",
+  "is_bookmarked": "boolean"
+}

@@ -30,6 +30,7 @@
     </script>
     <script>
       let fx;
+      let data = [];
       $(()=>{
         fx = new Fbs(db);
       })
@@ -52,7 +53,6 @@
               await loadJsonToGlobal(name, url);
           }
       }
-
 
       const normalizeData = (data) => {
         return data.map(item => {
@@ -121,8 +121,6 @@
               address: company?.address || "",
               web_url: company?.web_url || "",
               company_logo_url: company?.company_logo_url || "",
-              created_at: company?.created_at || "",
-              updated_at: company?.updated_at || ""
             },
             industry,
             tags: (tags || []).join(', '),
@@ -142,6 +140,95 @@
           };
         });
       };
+
+      // const normalizeData = (data) => {
+      //   return data.map(item => {
+      //     const {
+      //       _id,
+      //       title,
+      //       slug,
+      //       application_type,
+      //       seo_image_url,
+      //       description,
+      //       job_link,
+      //       employment_type,
+      //       seniority_level,
+      //       experience_level,
+      //       work_arrangement,
+      //       number_of_vacancies,
+      //       has_no_specific_vacancy,
+      //       internship_eligibility,
+      //       city,
+      //       country_code,
+      //       company,
+      //       industry,
+      //       tags,
+      //       responsibilities,
+      //       requirements,
+      //       expired_at,
+      //       created_at,
+      //       updated_at,
+      //       is_appliable_via_kinobi,
+      //       currency,
+      //       salary_lower_range,
+      //       salary_upper_range,
+      //       soft_industry_skill_value_ids,
+      //       hard_industry_skill_value_ids,
+      //       job_additional_resource_assets,
+      //       number_of_views
+      //     } = item;
+
+      //     return {
+      //       _id,
+      //       title,
+      //       slug,
+      //       application_type,
+      //       seo_image_url,
+      //       description,
+      //       job_link,
+      //       employment_type,
+      //       seniority_level: seniority_level || "", // pastikan string
+      //       experience_level,
+      //       work_arrangement,
+      //       number_of_vacancies,
+      //       has_no_specific_vacancy,
+      //       internship_eligibility: internship_eligibility || "",
+      //       city: city || null,
+      //       country_code,
+      //       company: {
+      //         type: company?.type || "",
+      //         name: company?.name || "",
+      //         industry: company?.industry || "",
+      //         industries: company?.industries || [],
+      //         country_code: company?.country_code || "",
+      //         text: company?.text || "",
+      //         logo_url: company?.logo_url || "",
+      //         order: company?.order ?? 0,
+      //         description: company?.description || "",
+      //         address: company?.address || "",
+      //         web_url: company?.web_url || "",
+      //         company_logo_url: company?.company_logo_url || "",
+      //         created_at: company?.created_at || "",
+      //         updated_at: company?.updated_at || ""
+      //       },
+      //       industry,
+      //       tags: (tags || []).join(', '),
+      //       responsibilities: (responsibilities || []).map(r => r.text).join(', '),
+      //       requirements: (requirements || []).map(r => r.text).join(', '),
+      //       expired_at,
+      //       created_at,
+      //       updated_at,
+      //       is_appliable_via_kinobi,
+      //       currency: currency || "",
+      //       salary_lower_range: salary_lower_range ?? null,
+      //       salary_upper_range: salary_upper_range ?? null,
+      //       soft_industry_skill_value_ids: soft_industry_skill_value_ids || [],
+      //       hard_industry_skill_value_ids: hard_industry_skill_value_ids || [],
+      //       job_additional_resource_assets: job_additional_resource_assets || [],
+      //       number_of_views
+      //     };
+      //   });
+      // };
 
     </script>
   </body>
