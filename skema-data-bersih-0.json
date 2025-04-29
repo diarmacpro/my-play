@@ -1,0 +1,100 @@
+{
+ "_id": "string",
+ "title": "string",
+ "slug": "string",
+ "application_type": "string",
+ "seo_image_url": "string",
+ "description": "string",
+ "job_link": "string",
+ "employment_type": "string",
+ "seo_employment_type": "string",
+ "seniority_level": "string (nullable)",
+ "experience_level": "string",
+ "work_arrangement": "string",
+ "number_of_vacancies": "number",
+ "internship_eligibility": "string (nullable)",
+ "city": "string (nullable)",
+ "country_code": "string",
+ "industry": "string",
+ "status": "string",
+ "currency": "string (nullable)",
+ "to_email_addresses": ["string"],
+ "expired_at": "datetime (ISO 8601)",
+ "created_at": "datetime (ISO 8601)",
+ "updated_at": "datetime (ISO 8601)",
+
+ "company": {
+   "_id": "string",
+   "slug": "string",
+   "company_id": "string",
+   "type": "string",
+   "name": "string",
+   "industry": "string",
+   "industries": ["string"],
+   "unique_entity_number": "string",
+   "country_code": "string",
+   "text": "string",
+   "logo_url": "string",
+   "order": "number",
+   "description": "string",
+   "address": "string",
+   "guide_order": "number",
+   "web_url": "string",
+   "linkedin_url": "string (nullable)",
+   "company_video_url": "string (nullable)",
+   "membership_plan_id": "number",
+   "company_assets": [
+     {
+       "_id": "string",
+       "company": "string",
+       "asset": {
+         "_id": "string",
+         "mime_type": "string",
+         "dirname": "string",
+         "size": "number",
+         "name": "string",
+         "meta": {
+           "bucket": "string",
+           "acl": "string",
+           "fieldname": "string",
+           "originalname": "string",
+           "encoding": "string",
+           "mimetype": "string",
+           "size": "number",
+           "key": "string",
+           "contentType": "string",
+           "storageClass": "string",
+           "location": "string",
+           "etag": "string",
+           "versionId": "string"
+         },
+         "created_at": "datetime",
+         "updated_at": "datetime",
+         "src": "string",
+         "id": "string"
+       },
+       "created_at": "datetime",
+       "updated_at": "datetime"
+     }
+   ],
+   "company_logo_url": "string",
+   "created_at": "datetime",
+   "updated_at": "datetime"
+ },
+
+ "responsibilities": [
+   {
+     "text": "string",
+     "_id": "string",
+     "id": "string"
+   }
+ ],
+
+ "requirements": [
+   {
+     "text": "string",
+     "_id": "string",
+     "id": "string"
+   }
+ ]
+}

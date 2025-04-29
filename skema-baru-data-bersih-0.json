@@ -1,0 +1,55 @@
+{
+ "_id": "string",
+ "title": "string",
+ "slug": "string",
+ "application_type": "string",
+ "description": "string",
+ "job_link": "string",
+ "employment_type": "string",
+ "seniority_level": "string (nullable)",
+ "experience_level": "string",
+ "work_arrangement": "string",
+ "number_of_vacancies": "number",
+ "internship_eligibility": "string (nullable)",
+ "city": "string (nullable)",
+ "country_code": "string",
+ "industry": "string",
+ "status": "string",
+ "currency": "string (nullable)",
+ "expired_at": "datetime (ISO 8601)",
+ "created_at": "datetime (ISO 8601)",
+ "updated_at": "datetime (ISO 8601)",
+
+ "company": {
+   "type": "string",
+   "name": "string",
+   "industry": "string",
+   "industries": ["string"],
+   "country_code": "string",
+   "text": "string",
+   "logo_url": "string",
+   "description": "string",
+   "address": "string",
+   "guide_order": "number",
+   "web_url": "string",
+   "linkedin_url": "string (nullable)",
+   "membership_plan_id": "number",
+   "company_logo_url": "string",
+ },
+
+ "responsibilities": [
+   {
+     "text": "string",
+     "_id": "string",
+     "id": "string"
+   }
+ ],
+
+ "requirements": [
+   {
+     "text": "string",
+     "_id": "string",
+     "id": "string"
+   }
+ ]
+}

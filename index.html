@@ -36,6 +36,12 @@
       })
     </script>
     <script>
+      function nilaiUnikDari(dataA,prop){
+        return _.uniqBy(_.map(dataA, item => (
+          _.pick(item, prop)
+        )), prop);
+      }
+
       async function loadJsonToGlobal(name, url) {
           try {
               const response = await fetch(url);
@@ -46,190 +52,143 @@
               console.error(`Gagal load ${name} dari ${url}:`, error);
           }
       }
-      async function loadManyJson(prefix, start, end, folder) {
-          for (let i = start; i <= end; i++) {
-              const name = `${prefix}${i}`;
-              const url = `${folder}/${name}.json`;
-              await loadJsonToGlobal(name, url);
-          }
-      }
 
-      const normalizeData = (data) => {
+      async function transformDataV2(filename) {
+        const res = await fetch(filename);
+        const data = await res.json();
+
         return data.map(item => {
-          const {
-            _id,
-            title,
-            slug,
-            application_type,
-            seo_image_url,
-            description,
-            job_link,
-            employment_type,
-            seniority_level,
-            experience_level,
-            work_arrangement,
-            number_of_vacancies,
-            has_no_specific_vacancy,
-            internship_eligibility,
-            city,
-            country_code,
-            company,
-            industry,
-            tags,
-            responsibilities,
-            requirements,
-            expired_at,
-            created_at,
-            updated_at,
-            is_appliable_via_kinobi,
-            currency,
-            salary_lower_range,
-            salary_upper_range,
-            soft_industry_skill_value_ids,
-            hard_industry_skill_value_ids,
-            job_additional_resource_assets,
-            number_of_views
-          } = item;
+          const company = item['company.name'] ? {
+            name: item['company.name'],
+            industry: item['company.industry'],
+            industries: item['company.industries'],
+            country_code: item['company.country_code'],
+            logo_url: item['company.logo_url'],
+            description: item['company.description'],
+            linkedin_url: item['company.linkedin_url']
+          } : {};
+
+          // Gabung link
+          const links = [item.job_link, company.linkedin_url].filter(Boolean).join(' || ') || null;
+
+          // Gabung industri tanpa duplikat
+          const industries = [...new Set([
+            item.industry,
+            company.industry,
+            company.industries
+          ].filter(Boolean))].join(' || ') || null;
+
+          // Gabung country code unik
+          const countries = [...new Set([
+            item.country_code,
+            company.country_code
+          ].filter(Boolean))].join(' || ') || null;
+
+          // Gabung tanggal
+          const dates = [
+            item.expired_at ? 'exp: ' + item.expired_at : null,
+            item.created_at ? 'crt: ' + item.created_at : null,
+            item.updated_at ? 'updated_at: ' + item.updated_at : null
+          ].filter(Boolean).join(' || ');
 
           return {
-            _id,
-            title,
-            slug,
-            application_type,
-            seo_image_url,
-            description,
-            job_link,
-            employment_type,
-            seniority_level: seniority_level || "", // pastikan string
-            experience_level,
-            work_arrangement,
-            number_of_vacancies,
-            has_no_specific_vacancy,
-            internship_eligibility: internship_eligibility || "",
-            city: city || null,
-            country_code,
-            company: {
-              type: company?.type || "",
-              name: company?.name || "",
-              industry: company?.industry || "",
-              industries: company?.industries || [],
-              country_code: company?.country_code || "",
-              text: company?.text || "",
-              logo_url: company?.logo_url || "",
-              order: company?.order ?? 0,
-              description: company?.description || "",
-              address: company?.address || "",
-              web_url: company?.web_url || "",
-              company_logo_url: company?.company_logo_url || "",
-            },
-            industry,
-            tags: (tags || []).join(', '),
-            responsibilities: (responsibilities || []).map(r => r.text).join(', '),
-            requirements: (requirements || []).map(r => r.text).join(', '),
-            expired_at,
-            created_at,
-            updated_at,
-            is_appliable_via_kinobi,
-            currency: currency || "",
-            salary_lower_range: salary_lower_range ?? null,
-            salary_upper_range: salary_upper_range ?? null,
-            soft_industry_skill_value_ids: soft_industry_skill_value_ids || [],
-            hard_industry_skill_value_ids: hard_industry_skill_value_ids || [],
-            job_additional_resource_assets: job_additional_resource_assets || [],
-            number_of_views
+            _id: item._id,
+            title: item.title,
+            description: item.description,
+            application_type: item.application_type,
+            link: links,
+            employment_type: item.employment_type,
+            seniority_level: item.seniority_level,
+            experience_level: item.experience_level,
+            work_arrangement: item.work_arrangement,
+            internship_eligibility: item.internship_eligibility,
+            city: item.city || null,
+            industry: industries,
+            status: item.status,
+            currency: item.currency,
+            date: dates,
+            country_code: countries,
+            company_name: company.name || null,
+            company_logo_url: company.logo_url || null,
+            company_description: company.description || null,
+            responsibilities: item.responsibilities || null,
+            requirements: item.requirements || null
           };
         });
-      };
+      }
 
-      // const normalizeData = (data) => {
-      //   return data.map(item => {
-      //     const {
-      //       _id,
-      //       title,
-      //       slug,
-      //       application_type,
-      //       seo_image_url,
-      //       description,
-      //       job_link,
-      //       employment_type,
-      //       seniority_level,
-      //       experience_level,
-      //       work_arrangement,
-      //       number_of_vacancies,
-      //       has_no_specific_vacancy,
-      //       internship_eligibility,
-      //       city,
-      //       country_code,
-      //       company,
-      //       industry,
-      //       tags,
-      //       responsibilities,
-      //       requirements,
-      //       expired_at,
-      //       created_at,
-      //       updated_at,
-      //       is_appliable_via_kinobi,
-      //       currency,
-      //       salary_lower_range,
-      //       salary_upper_range,
-      //       soft_industry_skill_value_ids,
-      //       hard_industry_skill_value_ids,
-      //       job_additional_resource_assets,
-      //       number_of_views
-      //     } = item;
+      async function transformData(file) {
+        const response = await fetch(file);
+        const data = await response.json();
 
-      //     return {
-      //       _id,
-      //       title,
-      //       slug,
-      //       application_type,
-      //       seo_image_url,
-      //       description,
-      //       job_link,
-      //       employment_type,
-      //       seniority_level: seniority_level || "", // pastikan string
-      //       experience_level,
-      //       work_arrangement,
-      //       number_of_vacancies,
-      //       has_no_specific_vacancy,
-      //       internship_eligibility: internship_eligibility || "",
-      //       city: city || null,
-      //       country_code,
-      //       company: {
-      //         type: company?.type || "",
-      //         name: company?.name || "",
-      //         industry: company?.industry || "",
-      //         industries: company?.industries || [],
-      //         country_code: company?.country_code || "",
-      //         text: company?.text || "",
-      //         logo_url: company?.logo_url || "",
-      //         order: company?.order ?? 0,
-      //         description: company?.description || "",
-      //         address: company?.address || "",
-      //         web_url: company?.web_url || "",
-      //         company_logo_url: company?.company_logo_url || "",
-      //         created_at: company?.created_at || "",
-      //         updated_at: company?.updated_at || ""
-      //       },
-      //       industry,
-      //       tags: (tags || []).join(', '),
-      //       responsibilities: (responsibilities || []).map(r => r.text).join(', '),
-      //       requirements: (requirements || []).map(r => r.text).join(', '),
-      //       expired_at,
-      //       created_at,
-      //       updated_at,
-      //       is_appliable_via_kinobi,
-      //       currency: currency || "",
-      //       salary_lower_range: salary_lower_range ?? null,
-      //       salary_upper_range: salary_upper_range ?? null,
-      //       soft_industry_skill_value_ids: soft_industry_skill_value_ids || [],
-      //       hard_industry_skill_value_ids: hard_industry_skill_value_ids || [],
-      //       job_additional_resource_assets: job_additional_resource_assets || [],
-      //       number_of_views
-      //     };
-      //   });
-      // };
+        const transformed = data.map(item => {
+          const company = item.company || {};
+          return {
+            _id: item._id,
+            title: item.title,
+            description: item.description,
+            application_type: item.application_type,
+            job_link: item.job_link,
+            employment_type: item.employment_type,
+            seniority_level: item.seniority_level,
+            experience_level: item.experience_level,
+            work_arrangement: item.work_arrangement,
+            internship_eligibility: item.internship_eligibility,
+            city: item.city,
+            country_code: item.country_code,
+            industry: item.industry,
+            status: item.status,
+            currency: item.currency,
+            expired_at: item.expired_at,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            "company.name": company.name || null,
+            "company.industry": company.industry || null,
+            "company.industries": Array.isArray(company.industries) ? company.industries.join(', ') : null,
+            "company.country_code": company.country_code || null,
+            "company.logo_url": company.logo_url || null,
+            "company.description": company.description || null,
+            "company.linkedin_url": company.linkedin_url || null,
+            responsibilities: Array.isArray(item.responsibilities) && item.responsibilities.length
+              ? item.responsibilities.join(' || ')
+              : null,
+            requirements: Array.isArray(item.requirements) && item.requirements.length
+              ? item.requirements.join(' || ')
+              : null,
+          };
+        });
 
+        console.log(transformed);
+        return transformed;
+      }
+      function mergeSalary(data3, data0) {
+          // Membuat lookup untuk gaji berdasarkan _id
+          const salaryMap = {};
+          data0.forEach(item => {
+              salaryMap[item._id] = {
+                  salary_lower: item.salary_lower_range || null,
+                  salary_upper: item.salary_upper_range || null
+              };
+          });
+
+          // Gabungkan salary ke data3
+          const merged = data3.map(item => {
+              const salary = salaryMap[item._id] || { salary_lower: null, salary_upper: null };
+              return {
+                  ...item,
+                  salary_lower: salary.salary_lower,
+                  salary_upper: salary.salary_upper
+              };
+          });
+
+          return merged;
+      }
+
+
+      $(()=>{
+        // loadJsonToGlobal('dataA','./all-apply.json');
+        // loadJsonToGlobal('dataA','./data-bersih-2.json');
+      })
     </script>
   </body>
 </html>

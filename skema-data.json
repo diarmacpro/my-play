@@ -1,0 +1,143 @@
+{
+  "_id": "string", // ID unik pekerjaan
+  "title": "string", // Judul pekerjaan
+  "slug": "string", // URL slug untuk pekerjaan
+  "application_type": "string", // Jenis aplikasi, misal "external job"
+  "seo_image_url": "string", // URL gambar untuk SEO
+  "description": "string", // Deskripsi dalam HTML
+  "job_link": "string", // Link untuk apply
+  "employment_type": "string", // Jenis pekerjaan, misal "full time"
+  "seo_employment_type": "string", // Untuk SEO, biasanya uppercase
+  "seniority_level": "string", // Tingkat senioritas, bisa kosong
+  "experience_level": "string", // Tingkat pengalaman, misal "associate" atau "entry level"
+  "work_arrangement": "string", // Pola kerja, misal "work from office"
+  "number_of_vacancies": "number", // Jumlah lowongan tersedia
+  "has_no_specific_vacancy": "boolean", // True jika tidak spesifik jumlah vacancy
+  "internship_eligibility": "string", // Keterangan eligibility magang, bisa kosong
+  "city": "string|null", // Kota, bisa null
+  "country_code": "string", // Kode negara, misal "ID"
+  
+  "company": { // Info perusahaan
+    "_id": "string",
+    "slug": "string",
+    "company_id": "string",
+    "type": "string",
+    "name": "string",
+    "industry": "string",
+    "industries": ["string"], // List industri
+    "unique_entity_number": "string",
+    "not_use_unique_entity_number": "boolean",
+    "country_code": "string",
+    "text": "string",
+    "logo_url": "string",
+    "order": "number",
+    "description": "string",
+    "address": "string",
+    "guide_order": "number",
+    "disable_for_subtitle": "boolean",
+    "web_url": "string",
+    "linkedin_url": "string", // Bisa kosong
+    "company_video_url": "string", // Bisa kosong
+    "point_of_contacts": [], // Biasanya array kosong
+    "has_point_of_contact": "boolean",
+    "active_job_count": [], // Array kosong
+    "membership_plan_id": "number",
+    "meta": null, // Selalu null
+    "company_assets": [ // List asset perusahaan
+      {
+        "_id": "string",
+        "company": "string",
+        "asset": {
+          "_id": "string",
+          "mime_type": "string",
+          "dirname": "string",
+          "size": "number",
+          "name": "string",
+          "meta": {
+            "bucket": "string",
+            "acl": "string",
+            "fieldname": "string",
+            "originalname": "string",
+            "encoding": "string",
+            "mimetype": "string",
+            "size": "number",
+            "key": "string",
+            "contentType": "string",
+            "contentDisposition": "null|string",
+            "contentEncoding": "null|string",
+            "storageClass": "string",
+            "serverSideEncryption": "null|string",
+            "location": "string",
+            "etag": "string",
+            "versionId": "string"
+          },
+          "created_at": "datetime string",
+          "updated_at": "datetime string",
+          "__v": "number",
+          "src": "string",
+          "id": "string"
+        },
+        "sequence": "number",
+        "created_at": "datetime string",
+        "updated_at": "datetime string",
+        "__v": "number"
+      }
+    ],
+    "company_logo_url": "string",
+    "created_at": "datetime string",
+    "updated_at": "datetime string",
+    "deleted_at": "null"
+  },
+
+  "industry": "string", // Industri pekerjaan
+  "tags": ["string"], // Biasanya array kosong
+  "responsibilities": [ // Tanggung jawab pekerjaan
+    {
+      "text": "string",
+      "_id": "string",
+      "id": "string"
+    }
+  ],
+  "requirements": [ // Persyaratan pekerjaan
+    {
+      "text": "string",
+      "_id": "string",
+      "id": "string"
+    }
+  ],
+  "to_email_addresses": ["string"], // Email tujuan
+  "cc_email_addresses": ["string"], // Email cc, bisa kosong
+  "is_showcased": "boolean", // Apakah pekerjaan ini dipromosikan
+  "expired_at": "datetime string", // Tanggal expire
+  "is_expired": "boolean", // Apakah sudah expired
+  "created_at": "datetime string", 
+  "updated_at": "datetime string",
+  "is_appliable_via_kinobi": "boolean",
+  "status": "string", // Status publish/draft
+  "is_draft": "boolean",
+  "disable_job_status": "boolean",
+  "currency": "string", // Mata uang, bisa kosong
+  "salary_lower_range": "number|null", // Range gaji bawah
+  "salary_upper_range": "number|null", // Range gaji atas
+
+  "restriction": { // Restriksi pelamar
+    "degree_level": ["string"],
+    "major": ["string"],
+    "graduation_years": ["number"],
+    "majors": ["string"],
+    "programs": ["string"],
+    "academic_levels": ["string"],
+    "user_groups": ["string"]
+  },
+
+  "has_advance_settings": "boolean",
+  "is_disclose_salary": "boolean",
+  "display_to_unqualified_student": "boolean",
+  "keywords": ["string"], // Kata kunci tambahan, bisa kosong
+  "soft_industry_skill_value_ids": ["string"], // Biasanya kosong
+  "hard_industry_skill_value_ids": ["string"], // Biasanya kosong
+  "job_additional_resource_assets": ["string"], // Biasanya kosong
+  "number_of_views": "number",
+  "user_has_applied": "boolean",
+  "is_bookmarked": "boolean"
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Job Listing Table</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6">
+  <div id="app" class="container mx-auto">
+    <input
+      v-model="search"
+      type="text"
+      placeholder="Cari posisi, perusahaan, lokasi, dsb..."
+      class="w-full p-2 border rounded mb-4"
+    />
+
+    <table class="table-auto w-full border-collapse border border-gray-200">
+      <thead class="bg-gray-100">
+        <tr>
+          <th @click="sortBy('title')" class="p-2 cursor-pointer">Posisi</th>
+          <th @click="sortBy('company.name')" class="p-2 cursor-pointer">Perusahaan</th>
+          <th @click="sortBy('city')" class="p-2 cursor-pointer">Kota</th>
+          <th @click="sortBy('experience_level')" class="p-2 cursor-pointer">Level</th>
+          <th @click="sortBy('expired_at')" class="p-2 cursor-pointer">Tutup</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="job in filteredJobs" :key="job._id" class="border-b hover:bg-gray-50">
+          <td class="p-2">{{ job.title }}</td>
+          <td class="p-2">{{ job.company.name }}</td>
+          <td class="p-2">{{ job.city || '-' }}</td>
+          <td class="p-2">{{ job.experience_level || '-' }}</td>
+          <td class="p-2">{{ formatDate(job.expired_at) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const search = ref('');
+        const jobs = ref([]);
+        const sortedBy = ref('expired_at');
+        const sortAsc = ref(false);
+        let fuse = null;
+
+        // Load data
+        onMounted(async () => {
+          const res = await fetch('../data-bersih-1.json'); // Simpan file ini di direktori yang sama
+          const data = await res.json();
+          jobs.value = data;
+          fuse = new Fuse(data, {
+            keys: ['title', 'company.name', 'city', 'experience_level', 'requirements', 'description'],
+            includeScore: true,
+            threshold: 0.4,
+          });
+        });
+
+        const sortBy = (key) => {
+          if (sortedBy.value === key) {
+            sortAsc.value = !sortAsc.value;
+          } else {
+            sortedBy.value = key;
+            sortAsc.value = true;
+          }
+        };
+
+        const filteredJobs = computed(() => {
+          let result = search.value && fuse
+            ? fuse.search(search.value).map(i => i.item)
+            : jobs.value;
+
+          return _.orderBy(result, [sortedBy.value], [sortAsc.value ? 'asc' : 'desc']);
+        });
+
+        const formatDate = (iso) => new Date(iso).toLocaleDateString('id-ID');
+
+        return { search, filteredJobs, sortBy, formatDate };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
