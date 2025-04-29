@@ -14,12 +14,6 @@
     .slide-enter-from, .slide-leave-to {
       transform: translateX(100%);
     }
-    .modal-enter-active, .modal-leave-active {
-      transition: opacity 0.3s ease;
-    }
-    .modal-enter-from, .modal-leave-to {
-      opacity: 0;
-    }
   </style>
 </head>
 <body class="bg-gray-50 p-6">
@@ -81,8 +75,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="job in jobs" :key="job._id" class="border-b hover:bg-gray-50 cursor-pointer" @click="selectedJob = job">
-              <td class="p-2"><img v-if="job.company_logo_url" :src="job.company_logo_url" class="w-10 h-10 object-contain" /></td>
+            <tr v-for="job in jobs" :key="job._id" class="border-b hover:bg-gray-50 cursor-pointer">
+              <td class="p-2"><img v-if="job.company_logo_url" :src="job.company_logo_url" class="w-10 h-10" /></td>
               <td class="p-2">{{ job.title }}</td>
               <td class="p-2">{{ job.employment_type || '-' }}</td>
               <td class="p-2">{{ job.work_arrangement || '-' }}</td>
@@ -99,7 +93,7 @@
 
     <!-- Filter Sidebar -->
     <transition name="slide">
-      <div v-if="showFilter" class="fixed inset-0 z-40 flex justify-end bg-black bg-opacity-30">
+      <div v-if="showFilter" class="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-30">
         <div class="bg-white w-full max-w-md h-full p-6 shadow-lg overflow-y-auto relative">
           <h2 class="text-xl font-semibold mb-4">Filter</h2>
           <div class="space-y-6">
@@ -158,103 +152,6 @@
         </div>
       </div>
     </transition>
-
-    <!-- Job Details Modal -->
-    <transition name="modal">
-      <div v-if="selectedJob" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
-          <div class="p-6">
-            <button @click="selectedJob = null" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">×</button>
-            
-            <div class="flex items-start gap-4 mb-6">
-              <img 
-                v-if="selectedJob.company_logo_url" 
-                :src="selectedJob.company_logo_url" 
-                :alt="selectedJob.company_name"
-                class="w-20 h-20 object-contain"
-              />
-              <div>
-                <h2 class="text-2xl font-bold text-gray-900">{{ selectedJob.title }}</h2>
-                <p class="text-lg text-gray-600">{{ selectedJob.company_name }}</p>
-                <div class="flex flex-wrap gap-2 mt-2">
-                  <span class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">
-                    {{ selectedJob.employment_type || 'Tidak disebutkan' }}
-                  </span>
-                  <span class="bg-green-100 text-green-800 text-sm px-2 py-1 rounded">
-                    {{ selectedJob.work_arrangement || 'Tidak disebutkan' }}
-                  </span>
-                  <span class="bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded">
-                    {{ selectedJob.city || 'Lokasi tidak disebutkan' }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="space-y-6">
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="font-semibold text-lg mb-2">Informasi Gaji</h3>
-                <p class="text-gray-700">
-                  {{ formatCurrency(selectedJob.salary_lower) }} - {{ formatCurrency(selectedJob.salary_upper) }}
-                </p>
-              </div>
-
-              <div>
-                <h3 class="font-semibold text-lg mb-2">Deskripsi Pekerjaan</h3>
-                <div class="prose max-w-none" v-html="selectedJob.description"></div>
-              </div>
-
-              <div>
-                <h3 class="font-semibold text-lg mb-2">Tanggung Jawab</h3>
-                <div class="prose max-w-none" v-html="selectedJob.responsibilities"></div>
-              </div>
-
-              <div>
-                <h3 class="font-semibold text-lg mb-2">Kualifikasi</h3>
-                <div class="prose max-w-none" v-html="selectedJob.requirements"></div>
-              </div>
-
-              <div>
-                <h3 class="font-semibold text-lg mb-2">Tentang Perusahaan</h3>
-                <p class="text-gray-700">{{ selectedJob.company_description }}</p>
-              </div>
-
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="font-semibold text-lg mb-2">Informasi Tambahan</h3>
-                <dl class="grid grid-cols-2 gap-4">
-                  <div>
-                    <dt class="text-gray-600">Level Senioritas</dt>
-                    <dd class="font-medium">{{ selectedJob.seniority_level || 'Tidak disebutkan' }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-gray-600">Status</dt>
-                    <dd class="font-medium">{{ selectedJob.status }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-gray-600">Tipe Aplikasi</dt>
-                    <dd class="font-medium">{{ selectedJob.application_type }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-gray-600">Tanggal Info</dt>
-                    <dd class="font-medium">{{ selectedJob.date }}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div class="mt-6">
-                <a 
-                  :href="selectedJob.link" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Lamar Sekarang
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
   </div>
 
   <script>
@@ -266,7 +163,6 @@
         const jobs = ref([]);
         const expandedCompanies = ref([]);
         const showFilter = ref(false);
-        const selectedJob = ref(null);
         const filterSearches = ref({});
 
         const filters = ref(JSON.parse(localStorage.getItem('jobFilters')) || {
@@ -378,7 +274,7 @@
 
         return {
           search, showFilter, filters, filterFields, filterSearches,
-          jobs, filteredJobs, groupedJobs, selectedJob,
+          jobs, filteredJobs, groupedJobs,
           getUniqueValues, getGroupedBadges, getSalaryRange,
           toggleCompany, expandedCompanies,
           applyFilters, resetFilters, formatCurrency,
