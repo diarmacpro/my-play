@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,10 +26,7 @@
         placeholder="Cari posisi, perusahaan, lokasi, dsb..."
         class="w-full p-2 border rounded mr-2"
       />
-      <div class="flex items-center space-x-4">
-        <div class="text-sm text-gray-600">Total posisi: {{ filteredJobs.length }}</div>
-        <button @click="showFilter = true" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
-      </div>
+      <div class="flex items-center space-x-4"><div class="text-sm text-gray-600">Total posisi: {{ filteredJobs.length }}</div><button @click="showFilter = true" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button></div>
     </div>
 
     <!-- Accordion List -->
@@ -96,52 +94,23 @@
       <div v-if="showFilter" class="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-30">
         <div class="bg-white w-full max-w-md h-full p-6 shadow-lg overflow-y-auto relative">
           <h2 class="text-xl font-semibold mb-4">Filter</h2>
-          <div class="space-y-6">
-            <div v-for="field in filterFields" :key="field" class="border-b pb-4">
-              <label class="block font-medium mb-2 capitalize">{{ field.replace('_', ' ') }}</label>
-              <input
-                v-model="filterSearches[field]"
-                type="text"
-                :placeholder="'Cari ' + field.replace('_', ' ')"
-                class="w-full p-2 border rounded mb-2 text-sm"
-              />
-              <div class="flex justify-between items-center mb-2">
-                <button 
-                  @click="selectAllFilters(field)" 
-                  class="text-sm text-blue-600 hover:underline"
-                >
-                  Pilih Semua
-                </button>
-                <button 
-                  @click="clearFilters(field)" 
-                  class="text-sm text-red-600 hover:underline"
-                >
-                  Hapus Semua
-                </button>
-              </div>
+          <div class="space-y-4">
+            <div v-for="field in filterFields" :key="field" class="border-b pb-2">
+              <label class="block font-medium mb-1 capitalize">{{ field.replace('_', ' ') }}</label>
               <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                <label 
-                  v-for="val in filteredOptions(field)" 
-                  :key="val" 
-                  class="flex items-center space-x-2 text-sm bg-gray-50 p-2 rounded w-full"
-                >
-                  <input 
-                    type="checkbox" 
-                    v-model="filters[field]" 
-                    :value="val"
-                    class="rounded"
-                  />
+                <label v-for="val in getUniqueValues(field)" :key="val" class="flex items-center space-x-2 text-sm">
+                  <input type="checkbox" v-model="filters[field]" :value="val" />
                   <span>{{ val }}</span>
                 </label>
               </div>
             </div>
             <div>
-              <label class="block font-medium mb-2">Include Words (pisah koma)</label>
-              <input v-model="filters.include" class="w-full p-2 border rounded text-sm" />
+              <label class="block font-medium">Include Words (pisah koma)</label>
+              <input v-model="filters.include" class="w-full p-1 border rounded text-sm" />
             </div>
             <div>
-              <label class="block font-medium mb-2">Exclude Words (pisah koma)</label>
-              <input v-model="filters.exclude" class="w-full p-2 border rounded text-sm" />
+              <label class="block font-medium">Exclude Words (pisah koma)</label>
+              <input v-model="filters.exclude" class="w-full p-1 border rounded text-sm" />
             </div>
           </div>
           <div class="mt-6 flex justify-between">
@@ -163,7 +132,6 @@
         const jobs = ref([]);
         const expandedCompanies = ref([]);
         const showFilter = ref(false);
-        const filterSearches = ref({});
 
         const filters = ref(JSON.parse(localStorage.getItem('jobFilters')) || {
           company_name: [], city: [], application_type: [], work_arrangement: [], employment_type: [],
@@ -172,28 +140,16 @@
 
         const filterFields = ['company_name', 'city', 'application_type', 'work_arrangement', 'employment_type'];
 
-        // Initialize filter searches
-        filterFields.forEach(field => {
-          filterSearches.value[field] = '';
-        });
-
         onMounted(async () => {
           const res = await fetch('../data-bersih-4.json');
           const data = await res.json();
           jobs.value = data;
-          
-          // Initialize filters with all values selected
-          filterFields.forEach(field => {
-            if (!filters.value[field].length) {
-              filters.value[field] = getUniqueValues(field);
-            }
-          });
         });
 
         const filteredJobs = computed(() => {
           return jobs.value.filter(job => {
             return filterFields.every(field => {
-              return filters.value[field].includes(job[field] || '-');
+              return filters.value[field].length === 0 || filters.value[field].includes(job[field] || '-');
             }) && includesText(job) && excludesText(job);
           });
         });
@@ -205,23 +161,6 @@
         const getUniqueValues = (key) => {
           const values = jobs.value.map(j => j[key] || '-');
           return Array.from(new Set(values)).sort();
-        };
-
-        const filteredOptions = (field) => {
-          const search = filterSearches.value[field].toLowerCase();
-          const options = getUniqueValues(field);
-          if (!search) return options;
-          return options.filter(opt => 
-            opt.toLowerCase().includes(search)
-          );
-        };
-
-        const selectAllFilters = (field) => {
-          filters.value[field] = getUniqueValues(field);
-        };
-
-        const clearFilters = (field) => {
-          filters.value[field] = [];
         };
 
         const includesText = (job) => {
@@ -242,12 +181,7 @@
         };
 
         const resetFilters = () => {
-          filterFields.forEach(field => {
-            filters.value[field] = getUniqueValues(field);
-            filterSearches.value[field] = '';
-          });
-          filters.value.include = '';
-          filters.value.exclude = '';
+          filters.value = { company_name: [], city: [], application_type: [], work_arrangement: [], employment_type: [], include: '', exclude: '' };
           localStorage.removeItem('jobFilters');
         };
 
@@ -273,12 +207,11 @@
         };
 
         return {
-          search, showFilter, filters, filterFields, filterSearches,
+          search, showFilter, filters, filterFields,
           jobs, filteredJobs, groupedJobs,
           getUniqueValues, getGroupedBadges, getSalaryRange,
           toggleCompany, expandedCompanies,
-          applyFilters, resetFilters, formatCurrency,
-          filteredOptions, selectAllFilters, clearFilters
+          applyFilters, resetFilters, formatCurrency
         };
       }
     }).mount('#app');
