@@ -43,29 +43,21 @@
         @click="toggleCompany(company)"
         class="w-full text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 flex justify-between items-start"
       >
-        <div class="flex items-start gap-4">
-          <img 
-            v-if="jobs[0]?.company_logo_url" 
-            :src="jobs[0].company_logo_url" 
-            :alt="company"
-            class="w-12 h-12 object-contain bg-white rounded-lg"
-          />
-          <div>
-            <div class="font-semibold text-lg">{{ company }}</div>
-            <div v-if="jobs.length" class="flex flex-wrap gap-2 mt-1 text-sm">
-              <template v-for="(count, type) in getGroupedBadges(jobs, 'application_type')">
-                <span class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{{ type }} ({{ count }})</span>
-              </template>
-              <template v-for="(count, type) in getGroupedBadges(jobs, 'work_arrangement')">
-                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded">{{ type }} ({{ count }})</span>
-              </template>
-              <template v-for="(count, city) in getGroupedBadges(jobs, 'city')">
-                <span class="inline-block bg-purple-100 text-purple-800 px-2 py-0.5 rounded">{{ city }} ({{ count }})</span>
-              </template>
-              <template v-if="getSalaryRange(jobs)">
-                <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">{{ getSalaryRange(jobs) }}</span>
-              </template>
-            </div>
+        <div>
+          <div class="font-semibold text-lg">{{ company }}</div>
+          <div v-if="jobs.length" class="flex flex-wrap gap-2 mt-1 text-sm">
+            <template v-for="(count, type) in getGroupedBadges(jobs, 'application_type')">
+              <span class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{{ type }} ({{ count }})</span>
+            </template>
+            <template v-for="(count, type) in getGroupedBadges(jobs, 'work_arrangement')">
+              <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded">{{ type }} ({{ count }})</span>
+            </template>
+            <template v-for="(count, city) in getGroupedBadges(jobs, 'city')">
+              <span class="inline-block bg-purple-100 text-purple-800 px-2 py-0.5 rounded">{{ city }} ({{ count }})</span>
+            </template>
+            <template v-if="getSalaryRange(jobs)">
+              <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">{{ getSalaryRange(jobs) }}</span>
+            </template>
           </div>
         </div>
         <div class="text-right">
@@ -77,6 +69,7 @@
         <table class="table-auto w-full border-collapse border border-gray-200">
           <thead class="bg-gray-50">
             <tr>
+              <th class="p-2">Logo</th>
               <th class="p-2">Posisi</th>
               <th class="p-2">Tipe Kerja</th>
               <th class="p-2">Arrangement</th>
@@ -89,6 +82,7 @@
           </thead>
           <tbody>
             <tr v-for="job in jobs" :key="job._id" class="border-b hover:bg-gray-50 cursor-pointer" @click="selectedJob = job">
+              <td class="p-2"><img v-if="job.company_logo_url" :src="job.company_logo_url" class="w-10 h-10 object-contain" /></td>
               <td class="p-2">{{ job.title }}</td>
               <td class="p-2">{{ job.employment_type || '-' }}</td>
               <td class="p-2">{{ job.work_arrangement || '-' }}</td>
