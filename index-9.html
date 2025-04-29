@@ -41,17 +41,17 @@
 <body class="bg-gray-50 pb-20">
   <div id="app" class="container mx-auto px-4 sm:px-6">
     <div class="sticky top-0 bg-gray-50 z-20 py-4">
-      <div class="flex items-center gap-4">
-        <div class="text-sm text-gray-600 whitespace-nowrap">Total: {{ totalCount }}</div>
-        <div class="flex-1">
-          <input
-            v-model="currentSearch"
-            type="text"
-            :placeholder="searchPlaceholder"
-            class="w-full p-2 border rounded"
-          />
+      <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center mb-4">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Cari posisi, perusahaan, lokasi, dsb..."
+          class="w-full p-2 border rounded"
+        />
+        <div class="flex items-center justify-between sm:justify-end gap-4">
+          <div class="text-sm text-gray-600">Total: {{ filteredJobs.length }}</div>
+          <button @click="showFilter = true" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
         </div>
-        <button @click="showFilter = true" class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap">Filter</button>
       </div>
     </div>
 
@@ -93,7 +93,7 @@
       >
         <div class="flex items-start gap-4">
           <img 
-            v-if="jobs.length && jobs[0]?.company_logo_url" 
+            v-if="jobs[0]?.company_logo_url" 
             :src="jobs[0].company_logo_url" 
             :alt="company"
             class="w-12 h-12 object-contain bg-white rounded-lg"
@@ -447,113 +447,18 @@
 
     createApp({
       setup() {
-        const tabSearches = ref({
-          jobs: '',
-          saved: '',
-          hidden: ''
-        });
-        
-        const activeTab = ref('jobs');
+        const search = ref('');
         const jobs = ref([]);
         const expandedCompanies = ref([]);
         const showFilter = ref(false);
         const selectedJob = ref(null);
         const filterSearches = ref({});
+        const activeTab = ref('jobs');
         
         // Load saved state from localStorage
         const savedJobs = ref(JSON.parse(localStorage.getItem('savedJobs')) || []);
         const hiddenJobs = ref(JSON.parse(localStorage.getItem('hiddenJobs')) || []);
         
-        const currentSearch = computed({
-          get: () => tabSearches.value[activeTab.value],
-          set: (val) => tabSearches.value[activeTab.value] = val
-        });
-
-        const searchPlaceholder = computed(() => {
-          const placeholders = {
-            jobs: 'Cari lowongan...',
-            saved: 'Cari di lowongan tersimpan...',
-            hidden: 'Cari di lowongan tersembunyi...'
-          };
-          return placeholders[activeTab.value];
-        });
-
-        const searchInJob = (job, searchText) => {
-          if (!searchText.trim()) return true;
-          
-          const searchTerms = searchText.toLowerCase().split(' ');
-          const searchableFields = [
-            job.company_name,
-            job.title,
-            job.employment_type,
-            job.work_arrangement,
-            job.seniority_level,
-            job.city,
-            job.salary_lower?.toString(),
-            job.salary_upper?.toString(),
-            job.application_type
-          ];
-          
-          return searchTerms.every(term => 
-            searchableFields.some(field => 
-              field?.toLowerCase().includes(term)
-            )
-          );
-        };
-
-        const filteredJobs = computed(() => {
-          let result = jobs.value.filter(job => {
-            if (hiddenJobs.value.includes(job._id)) return false;
-            
-            // Apply filters first
-            const passesFilters = filterFields.every(field => {
-              return filters.value[field].includes(job[field] || '-');
-            }) && includesText(job) && excludesText(job);
-
-            if (!passesFilters) return false;
-
-            return searchInJob(job, tabSearches.value.jobs);
-          });
-
-          return result;
-        });
-
-        const groupedJobs = computed(() => {
-          return filteredJobs.value.reduce((groups, job) => {
-            const company = job.company_name;
-            if (!groups[company]) {
-              groups[company] = [];
-            }
-            groups[company].push(job);
-            return groups;
-          }, {});
-        });
-
-        const savedJobsList = computed(() => {
-          return jobs.value
-            .filter(job => savedJobs.value.includes(job._id))
-            .filter(job => searchInJob(job, tabSearches.value.saved));
-        });
-
-        const hiddenJobsList = computed(() => {
-          return jobs.value
-            .filter(job => hiddenJobs.value.includes(job._id))
-            .filter(job => searchInJob(job, tabSearches.value.hidden));
-        });
-
-        const totalCount = computed(() => {
-          switch (activeTab.value) {
-            case 'jobs':
-              return filteredJobs.value.length;
-            case 'saved':
-              return savedJobsList.value.length;
-            case 'hidden':
-              return hiddenJobsList.value.length;
-            default:
-              return 0;
-          }
-        });
-
         const filters = ref(JSON.parse(localStorage.getItem('jobFilters')) || {
           company_name: [], city: [], application_type: [], work_arrangement: [], employment_type: [],
           include: '', exclude: ''
@@ -596,6 +501,27 @@
               filters.value[field] = getUniqueValues(field);
             }
           });
+        });
+
+        const filteredJobs = computed(() => {
+          return jobs.value.filter(job => {
+            if (hiddenJobs.value.includes(job._id)) return false;
+            return filterFields.every(field => {
+              return filters.value[field].includes(job[field] || '-');
+            }) && includesText(job) && excludesText(job);
+          });
+        });
+
+        const savedJobsList = computed(() => {
+          return jobs.value.filter(job => savedJobs.value.includes(job._id));
+        });
+
+        const hiddenJobsList = computed(() => {
+          return jobs.value.filter(job => hiddenJobs.value.includes(job._id));
+        });
+
+        const groupedJobs = computed(() => {
+          return _.groupBy(filteredJobs.value, 'company_name');
         });
 
         const getUniqueValues = (key) => {
@@ -684,7 +610,7 @@
         const isHidden = (jobId) => hiddenJobs.value.includes(jobId);
 
         const formatCurrency = (value) => {
-          if (value == null)  return '-';
+          if (value == null) return '-';
           return new Intl.NumberFormat('id-ID', { 
             style: 'currency', 
             currency: 'IDR',
@@ -693,35 +619,16 @@
         };
 
         return {
-          currentSearch,
-          searchPlaceholder,
-          totalCount,
-          activeTab,
-          showFilter,
-          filters,
-          filterFields,
-          filterSearches,
-          jobs,
-          filteredJobs,
-          groupedJobs,
-          selectedJob,
-          getUniqueValues,
-          formatCurrency,
-          toggleCompany,
-          expandedCompanies,
-          applyFilters,
-          resetFilters,
-          filteredOptions,
-          selectAllFilters,
-          clearFilters,
-          savedJobs,
-          hiddenJobs,
-          toggleSaved,
-          toggleHidden,
-          isSaved,
-          isHidden,
-          savedJobsList,
-          hiddenJobsList
+          search, showFilter, filters, filterFields, filterSearches,
+          jobs, filteredJobs, groupedJobs, selectedJob,
+          getUniqueValues, formatCurrency,
+          toggleCompany, expandedCompanies,
+          applyFilters, resetFilters,
+          filteredOptions, selectAllFilters, clearFilters,
+          savedJobs, hiddenJobs, activeTab,
+          toggleSaved, toggleHidden,
+          isSaved, isHidden,
+          savedJobsList, hiddenJobsList
         };
       }
     }).mount('#app');

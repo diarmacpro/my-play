@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ACESFA_41 | Airlangga Career, Entrepreneurship, and Scholarship Fair 2025</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .slide-enter-active, .slide-leave-active {
+      transition: transform 0.3s ease;
+    }
+    .slide-enter-from, .slide-leave-to {
+      transform: translateX(100%);
+    }
+    .modal-enter-active, .modal-leave-active {
+      transition: opacity 0.3s ease;
+    }
+    .modal-enter-from, .modal-leave-to {
+      opacity: 0;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 p-6">
+  <div id="app" class="container mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <input
+        v-model="search"
+        type="text"
+        placeholder="Cari posisi, perusahaan, lokasi, dsb..."
+        class="w-full p-2 border rounded mr-2"
+      />
+      <div class="flex items-center space-x-4">
+        <div class="text-sm text-gray-600">Total posisi: {{ filteredJobs.length }}</div>
+        <button @click="showFilter = true" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
+      </div>
+    </div>
+
+    <!-- Accordion List -->
+    <div v-for="(jobs, company) in groupedJobs" :key="company" class="mb-4 border rounded shadow-sm bg-white">
+      <button
+        @click="toggleCompany(company)"
+        class="w-full text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 flex justify-between items-start"
+      >
+        <div class="flex items-start gap-4">
+          <img 
+            v-if="jobs[0]?.company_logo_url" 
+            :src="jobs[0].company_logo_url" 
+            :alt="company"
+            class="w-12 h-12 object-contain bg-white rounded-lg"
+          />
+          <div>
+            <div class="font-semibold text-lg">{{ company }}</div>
+            <div v-if="jobs.length" class="flex flex-wrap gap-2 mt-1 text-sm">
+              <template v-for="(count, type) in getGroupedBadges(jobs, 'application_type')">
+                <span class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{{ type }} ({{ count }})</span>
+              </template>
+              <template v-for="(count, type) in getGroupedBadges(jobs, 'work_arrangement')">
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded">{{ type }} ({{ count }})</span>
+              </template>
+              <template v-for="(count, city) in getGroupedBadges(jobs, 'city')">
+                <span class="inline-block bg-purple-100 text-purple-800 px-2 py-0.5 rounded">{{ city }} ({{ count }})</span>
+              </template>
+              <template v-if="getSalaryRange(jobs)">
+                <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">{{ getSalaryRange(jobs) }}</span>
+              </template>
+            </div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-sm text-gray-500">{{ jobs.length }} posisi</div>
+          <div class="text-gray-500 text-lg">{{ expandedCompanies.includes(company) ? '▲' : '▼' }}</div>
+        </div>
+      </button>
+      <div v-if="expandedCompanies.includes(company)" class="p-4 overflow-x-auto">
+        <table class="table-auto w-full border-collapse border border-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="p-2">Posisi</th>
+              <th class="p-2">Tipe Kerja</th>
+              <th class="p-2">Arrangement</th>
+              <th class="p-2">Level</th>
+              <th class="p-2">Kota</th>
+              <th class="p-2">Gaji Bawah</th>
+              <th class="p-2">Gaji Atas</th>
+              <th class="p-2">Tipe Aplikasi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="job in jobs" :key="job._id" class="border-b hover:bg-gray-50 cursor-pointer" @click="selectedJob = job">
+              <td class="p-2">{{ job.title }}</td>
+              <td class="p-2">{{ job.employment_type || '-' }}</td>
+              <td class="p-2">{{ job.work_arrangement || '-' }}</td>
+              <td class="p-2">{{ job.experience_level || '-' }}</td>
+              <td class="p-2">{{ job.city || '-' }}</td>
+              <td class="p-2">{{ formatCurrency(job.salary_lower) }}</td>
+              <td class="p-2">{{ formatCurrency(job.salary_upper) }}</td>
+              <td class="p-2">{{ job.application_type || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Filter Sidebar -->
+    <transition name="slide">
+      <div v-if="showFilter" class="fixed inset-0 z-40 flex justify-end bg-black bg-opacity-30">
+        <div class="bg-white w-full max-w-md h-full p-6 shadow-lg overflow-y-auto relative">
+          <h2 class="text-xl font-semibold mb-4">Filter</h2>
+          <div class="space-y-6">
+            <div v-for="field in filterFields" :key="field" class="border-b pb-4">
+              <label class="block font-medium mb-2 capitalize">{{ field.replace('_', ' ') }}</label>
+              <input
+                v-model="filterSearches[field]"
+                type="text"
+                :placeholder="'Cari ' + field.replace('_', ' ')"
+                class="w-full p-2 border rounded mb-2 text-sm"
+              />
+              <div class="flex justify-between items-center mb-2">
+                <button 
+                  @click="selectAllFilters(field)" 
+                  class="text-sm text-blue-600 hover:underline"
+                >
+                  Pilih Semua
+                </button>
+                <button 
+                  @click="clearFilters(field)" 
+                  class="text-sm text-red-600 hover:underline"
+                >
+                  Hapus Semua
+                </button>
+              </div>
+              <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                <label 
+                  v-for="val in filteredOptions(field)" 
+                  :key="val" 
+                  class="flex items-center space-x-2 text-sm bg-gray-50 p-2 rounded w-full"
+                >
+                  <input 
+                    type="checkbox" 
+                    v-model="filters[field]" 
+                    :value="val"
+                    class="rounded"
+                  />
+                  <span>{{ val }}</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block font-medium mb-2">Include Words (pisah koma)</label>
+              <input v-model="filters.include" class="w-full p-2 border rounded text-sm" />
+            </div>
+            <div>
+              <label class="block font-medium mb-2">Exclude Words (pisah koma)</label>
+              <input v-model="filters.exclude" class="w-full p-2 border rounded text-sm" />
+            </div>
+          </div>
+          <div class="mt-6 flex justify-between">
+            <button @click="resetFilters" class="text-red-500 font-semibold">Reset</button>
+            <button @click="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded">Terapkan</button>
+          </div>
+          <button @click="showFilter = false" class="absolute top-3 right-4 text-gray-500 text-xl">×</button>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Job Details Modal -->
+    <transition name="modal">
+      <div v-if="selectedJob" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+          <div class="p-6">
+            <button @click="selectedJob = null" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">×</button>
+            
+            <div class="flex items-start gap-4 mb-6">
+              <img 
+                v-if="selectedJob.company_logo_url" 
+                :src="selectedJob.company_logo_url" 
+                :alt="selectedJob.company_name"
+                class="w-20 h-20 object-contain"
+              />
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900">{{ selectedJob.title }}</h2>
+                <p class="text-lg text-gray-600">{{ selectedJob.company_name }}</p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <span class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">
+                    {{ selectedJob.employment_type || 'Tidak disebutkan' }}
+                  </span>
+                  <span class="bg-green-100 text-green-800 text-sm px-2 py-1 rounded">
+                    {{ selectedJob.work_arrangement || 'Tidak disebutkan' }}
+                  </span>
+                  <span class="bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded">
+                    {{ selectedJob.city || 'Lokasi tidak disebutkan' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-lg mb-2">Informasi Gaji</h3>
+                <p class="text-gray-700">
+                  {{ formatCurrency(selectedJob.salary_lower) }} - {{ formatCurrency(selectedJob.salary_upper) }}
+                </p>
+              </div>
+
+              <div>
+                <h3 class="font-semibold text-lg mb-2">Deskripsi Pekerjaan</h3>
+                <div class="prose max-w-none" v-html="selectedJob.description"></div>
+              </div>
+
+              <div>
+                <h3 class="font-semibold text-lg mb-2">Tanggung Jawab</h3>
+                <div class="prose max-w-none" v-html="selectedJob.responsibilities"></div>
+              </div>
+
+              <div>
+                <h3 class="font-semibold text-lg mb-2">Kualifikasi</h3>
+                <div class="prose max-w-none" v-html="selectedJob.requirements"></div>
+              </div>
+
+              <div>
+                <h3 class="font-semibold text-lg mb-2">Tentang Perusahaan</h3>
+                <p class="text-gray-700">{{ selectedJob.company_description }}</p>
+              </div>
+
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-lg mb-2">Informasi Tambahan</h3>
+                <dl class="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt class="text-gray-600">Level Senioritas</dt>
+                    <dd class="font-medium">{{ selectedJob.seniority_level || 'Tidak disebutkan' }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-gray-600">Status</dt>
+                    <dd class="font-medium">{{ selectedJob.status }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-gray-600">Tipe Aplikasi</dt>
+                    <dd class="font-medium">{{ selectedJob.application_type }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-gray-600">Tanggal Info</dt>
+                    <dd class="font-medium">{{ selectedJob.date }}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="mt-6">
+                <a 
+                  :href="selectedJob.link" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Lamar Sekarang
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const search = ref('');
+        const jobs = ref([]);
+        const expandedCompanies = ref([]);
+        const showFilter = ref(false);
+        const selectedJob = ref(null);
+        const filterSearches = ref({});
+
+        const filters = ref(JSON.parse(localStorage.getItem('jobFilters')) || {
+          company_name: [], city: [], application_type: [], work_arrangement: [], employment_type: [],
+          include: '', exclude: ''
+        });
+
+        const filterFields = ['company_name', 'city', 'application_type', 'work_arrangement', 'employment_type'];
+
+        // Initialize filter searches
+        filterFields.forEach(field => {
+          filterSearches.value[field] = '';
+        });
+
+        onMounted(async () => {
+          const res = await fetch('../data-bersih-4.json');
+          const data = await res.json();
+          jobs.value = data;
+          
+          // Initialize filters with all values selected
+          filterFields.forEach(field => {
+            if (!filters.value[field].length) {
+              filters.value[field] = getUniqueValues(field);
+            }
+          });
+        });
+
+        const filteredJobs = computed(() => {
+          return jobs.value.filter(job => {
+            return filterFields.every(field => {
+              return filters.value[field].includes(job[field] || '-');
+            }) && includesText(job) && excludesText(job);
+          });
+        });
+
+        const groupedJobs = computed(() => {
+          return _.groupBy(filteredJobs.value, 'company_name');
+        });
+
+        const getUniqueValues = (key) => {
+          const values = jobs.value.map(j => j[key] || '-');
+          return Array.from(new Set(values)).sort();
+        };
+
+        const filteredOptions = (field) => {
+          const search = filterSearches.value[field].toLowerCase();
+          const options = getUniqueValues(field);
+          if (!search) return options;
+          return options.filter(opt => 
+            opt.toLowerCase().includes(search)
+          );
+        };
+
+        const selectAllFilters = (field) => {
+          filters.value[field] = getUniqueValues(field);
+        };
+
+        const clearFilters = (field) => {
+          filters.value[field] = [];
+        };
+
+        const includesText = (job) => {
+          if (!filters.value.include.trim()) return true;
+          const keywords = filters.value.include.toLowerCase().split(',').map(k => k.trim());
+          return keywords.some(k => JSON.stringify(job).toLowerCase().includes(k));
+        };
+
+        const excludesText = (job) => {
+          if (!filters.value.exclude.trim()) return true;
+          const keywords = filters.value.exclude.toLowerCase().split(',').map(k => k.trim());
+          return keywords.every(k => !JSON.stringify(job).toLowerCase().includes(k));
+        };
+
+        const applyFilters = () => {
+          localStorage.setItem('jobFilters', JSON.stringify(filters.value));
+          showFilter.value = false;
+        };
+
+        const resetFilters = () => {
+          filterFields.forEach(field => {
+            filters.value[field] = getUniqueValues(field);
+            filterSearches.value[field] = '';
+          });
+          filters.value.include = '';
+          filters.value.exclude = '';
+          localStorage.removeItem('jobFilters');
+        };
+
+        const toggleCompany = (company) => {
+          const i = expandedCompanies.value.indexOf(company);
+          i >= 0 ? expandedCompanies.value.splice(i, 1) : expandedCompanies.value.push(company);
+        };
+
+        const getGroupedBadges = (jobs, key) => {
+          return _.countBy(jobs, job => job[key] || '-');
+        };
+
+        const formatCurrency = (value) => {
+          if (value == null) return '-';
+          return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+        };
+
+        const getSalaryRange = (jobs) => {
+          const lowers = jobs.map(j => j.salary_lower).filter(v => typeof v === 'number');
+          const uppers = jobs.map(j => j.salary_upper).filter(v => typeof v === 'number');
+          if (!lowers.length || !uppers.length) return null;
+          return `${formatCurrency(Math.min(...lowers))} – ${formatCurrency(Math.max(...uppers))}`;
+        };
+
+        return {
+          search, showFilter, filters, filterFields, filterSearches,
+          jobs, filteredJobs, groupedJobs, selectedJob,
+          getUniqueValues, getGroupedBadges, getSalaryRange,
+          toggleCompany, expandedCompanies,
+          applyFilters, resetFilters, formatCurrency,
+          filteredOptions, selectAllFilters, clearFilters
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
