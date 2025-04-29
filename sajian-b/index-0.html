@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Job Listing Accordion</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6">
+  <div id="app" class="container mx-auto">
+
+    <!-- Search -->
+    <input
+      v-model="search"
+      type="text"
+      placeholder="Cari posisi, perusahaan, lokasi, dsb..."
+      class="w-full p-2 border rounded mb-4"
+    />
+
+    <!-- Accordions per Company -->
+    <div v-for="(jobs, company) in groupedJobs" :key="company" class="mb-4 border rounded shadow-sm bg-white">
+      <button
+        @click="toggleCompany(company)"
+        class="w-full text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 flex justify-between items-center"
+      >
+        <div class="font-semibold">{{ company }}</div>
+        <div>{{ expandedCompanies.includes(company) ? '▲' : '▼' }}</div>
+      </button>
+
+      <div v-if="expandedCompanies.includes(company)" class="p-4 overflow-x-auto">
+        <table class="table-auto w-full border-collapse border border-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="p-2">Logo</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('title')">Posisi</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('employment_type')">Tipe Kerja</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('work_arrangement')">Arrangement</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('experience_level')">Level</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('city')">Kota</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('salary_lower')">Gaji Bawah</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('salary_upper')">Gaji Atas</th>
+              <th class="p-2 cursor-pointer" @click="sortBy('application_type')">Tipe Aplikasi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="job in jobs"
+              :key="job._id"
+              :data-id="job._id"
+              class="border-b hover:bg-gray-50 cursor-pointer"
+              @click="selectJob(job)"
+            >
+              <td class="p-2">
+                <img v-if="job.company_logo_url" :src="job.company_logo_url" alt="Logo" class="w-10 h-10 object-contain" />
+              </td>
+              <td class="p-2">{{ job.title }}</td>
+              <td class="p-2">{{ job.employment_type || '-' }}</td>
+              <td class="p-2">{{ job.work_arrangement || '-' }}</td>
+              <td class="p-2">{{ job.experience_level || '-' }}</td>
+              <td class="p-2">{{ job.city || '-' }}</td>
+              <td class="p-2">{{ formatCurrency(job.salary_lower) }}</td>
+              <td class="p-2">{{ formatCurrency(job.salary_upper) }}</td>
+              <td class="p-2">{{ job.application_type || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal Detail -->
+    <div v-if="selectedJob" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg w-full max-w-3xl overflow-y-auto max-h-[90vh] relative">
+        <button @click="selectedJob = null" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">✖</button>
+        <h2 class="text-xl font-semibold mb-2">{{ selectedJob.title }}</h2>
+        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-4">{{ selectedJob._id }}</span>
+        <div class="space-y-2">
+          <p><strong>Deskripsi:</strong> <span v-html="selectedJob.description"></span></p>
+          <p><strong>Link:</strong> <a :href="selectedJob.link" class="text-blue-500" target="_blank">{{ selectedJob.link }}</a></p>
+          <p><strong>Seniority Level:</strong> {{ selectedJob.seniority_level || '-' }}</p>
+          <p><strong>Eligibility Internship:</strong> {{ selectedJob.internship_eligibility || '-' }}</p>
+          <p><strong>Status:</strong> {{ selectedJob.status }}</p>
+          <p><strong>Date Info:</strong> {{ selectedJob.date }}</p>
+          <img v-if="selectedJob.company_logo_url" :src="selectedJob.company_logo_url" alt="Logo" class="w-24 h-24 object-contain my-2" />
+          <p><strong>Deskripsi Perusahaan:</strong> {{ selectedJob.company_description }}</p>
+          <p><strong>Tanggung Jawab:</strong> {{ selectedJob.responsibilities }}</p>
+          <p><strong>Kualifikasi:</strong> {{ selectedJob.requirements }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const search = ref('');
+        const jobs = ref([]);
+        const sortedBy = ref('title');
+        const sortAsc = ref(true);
+        const selectedJob = ref(null);
+        const expandedCompanies = ref([]);
+        let fuse = null;
+
+        onMounted(async () => {
+          const res = await fetch('../data-bersih-4.json');
+          const data = await res.json();
+          jobs.value = data;
+          fuse = new Fuse(data, {
+            keys: ['title', 'company_name', 'city', 'experience_level', 'requirements', 'description'],
+            includeScore: true,
+            threshold: 0.4,
+          });
+        });
+
+        const sortBy = (key) => {
+          if (sortedBy.value === key) {
+            sortAsc.value = !sortAsc.value;
+          } else {
+            sortedBy.value = key;
+            sortAsc.value = true;
+          }
+        };
+
+        const filteredJobs = computed(() => {
+          let result = search.value && fuse
+            ? fuse.search(search.value).map(i => i.item)
+            : jobs.value;
+
+          return _.orderBy(result, [sortedBy.value], [sortAsc.value ? 'asc' : 'desc']);
+        });
+
+        const groupedJobs = computed(() => {
+          return _.groupBy(filteredJobs.value, 'company_name');
+        });
+
+        const toggleCompany = (company) => {
+          if (expandedCompanies.value.includes(company)) {
+            expandedCompanies.value = expandedCompanies.value.filter(c => c !== company);
+          } else {
+            expandedCompanies.value.push(company);
+          }
+        };
+
+        const selectJob = (job) => {
+          selectedJob.value = job;
+        };
+
+        const formatCurrency = (value) => {
+          if (value == null) return '-';
+          return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+        };
+
+        return {
+          search, filteredJobs, sortBy, selectedJob, selectJob,
+          expandedCompanies, toggleCompany, groupedJobs, formatCurrency
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

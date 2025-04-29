@@ -184,6 +184,25 @@
           return merged;
       }
 
+      /**
+
+      loadJsonToGlobal('dataA','./data-bersih-4.json')
+
+      // 1. Group data by 'company_name'
+      const groupedByCompany = _.groupBy(data, 'company_name');
+
+      // 2. Untuk setiap company, group lagi berdasarkan 'application_type', lalu ambil 'title'
+      const result = _(groupedByCompany)
+        .mapValues(companyJobs => {
+          return _(companyJobs)
+            .groupBy('application_type')
+            .mapValues(jobs => jobs.map(job => job.title))
+            .value();
+        })
+        .pickBy(applicationTypes => _.size(applicationTypes) > 1) // hanya ambil perusahaan dengan >1 jenis application_type
+        .value();
+      **/
+
 
       $(()=>{
         // loadJsonToGlobal('dataA','./all-apply.json');
